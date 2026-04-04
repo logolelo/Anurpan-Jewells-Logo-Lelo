@@ -27,11 +27,9 @@ type LineItemNode = {
   title?: string;
   quantity?: number;
   totalPrice?: Money;
-  variant?: {
-    title?: string;
-    image?: { url?: string; altText?: string } | null;
-    product?: { title?: string } | null;
-  } | null;
+  currentTotalPrice?: Money;
+  variantTitle?: string;
+  image?: { url?: string; altText?: string } | null;
 };
 type Order = {
   id: string;
@@ -131,17 +129,17 @@ export default function OrderDetail() {
                 {order.lineItems?.edges && order.lineItems.edges.length > 0 ? (
                   <div className="divide-y">
                     {order.lineItems.edges.map(({ node }, idx) => {
-                      const name = node.title || node.variant?.product?.title || node.variant?.title || "Item";
-                      const img = node.variant?.image?.url;
+                      const name = node.title || node.variantTitle || "Item";
+                      const img = node.image?.url;
                       return (
                         <div key={idx} className="py-3 flex items-center gap-3">
-                          {img ? <img src={img} alt={node.variant?.image?.altText || name} className="w-12 h-12 rounded object-cover" /> : <div className="w-12 h-12 rounded bg-muted" />}
+                          {img ? <img src={img} alt={node.image?.altText || name} className="w-12 h-12 rounded object-cover" /> : <div className="w-12 h-12 rounded bg-muted" />}
                           <div className="flex-1">
                             <p className="text-sm">{name}</p>
                             <p className="text-xs text-muted-foreground">Qty {node.quantity ?? 1}</p>
                           </div>
                           <div className="text-sm">
-                            {node.totalPrice?.amount} {node.totalPrice?.currencyCode}
+                            {(node.currentTotalPrice?.amount ?? node.totalPrice?.amount) || ""} {(node.currentTotalPrice?.currencyCode ?? node.totalPrice?.currencyCode) || ""}
                           </div>
                         </div>
                       );

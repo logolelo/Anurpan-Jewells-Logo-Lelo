@@ -88,20 +88,19 @@ export const CUSTOMER_ORDERS_QUERY = `
               edges {
                 node {
                   title
+                  variantTitle
                   quantity
-                  totalPrice {
+                  image {
+                    url
+                    altText
+                  }
+                  currentTotalPrice {
                     amount
                     currencyCode
                   }
-                  variant {
-                    title
-                    image {
-                      url
-                      altText
-                    }
-                    product {
-                      title
-                    }
+                  totalPrice {
+                    amount
+                    currencyCode
                   }
                 }
               }
@@ -160,20 +159,19 @@ export const CUSTOMER_ORDER_QUERY = `
         edges {
           node {
             title
+            variantTitle
             quantity
-            totalPrice {
+            image {
+              url
+              altText
+            }
+            currentTotalPrice {
               amount
               currencyCode
             }
-            variant {
-              title
-              image {
-                url
-                altText
-              }
-              product {
-                title
-              }
+            totalPrice {
+              amount
+              currencyCode
             }
           }
         }

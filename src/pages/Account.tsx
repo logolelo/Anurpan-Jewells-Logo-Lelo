@@ -35,11 +35,10 @@ export default function Account() {
         node: {
           title?: string;
           quantity?: number;
-          variant?: {
-            title?: string;
-            image?: { url?: string } | null;
-            product?: { title?: string } | null;
-          } | null;
+          variantTitle?: string;
+          image?: { url?: string; altText?: string } | null;
+          currentTotalPrice?: { amount?: string; currencyCode?: string } | null;
+          totalPrice?: { amount?: string; currencyCode?: string } | null;
         };
       }>;
     } | null;
@@ -175,7 +174,7 @@ export default function Account() {
                       {o.lineItems?.edges && o.lineItems.edges.length > 0 && (
                         <div className="divide-y">
                           {o.lineItems.edges.map(({ node }, idx) => {
-                            const name = node.title || node.variant?.product?.title || node.variant?.title || "Item";
+                            const name = node.title || node.variantTitle || "Item";
                             return (
                               <div key={idx} className="py-2 flex items-center justify-between">
                                 <div className="truncate">
