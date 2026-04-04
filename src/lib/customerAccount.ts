@@ -47,64 +47,24 @@ export const CUSTOMER_ORDERS_QUERY = `
   query CustomerOrders($first: Int!, $reverse: Boolean = true) {
     customer {
       id
-      emailAddress {
-        emailAddress
-      }
-      firstName
-      lastName
-      displayName
       orders(first: $first, sortKey: PROCESSED_AT, reverse: $reverse) {
         nodes {
           id
           name
           processedAt
           fulfillmentStatus
-          financialStatus
           totalPrice {
             amount
             currencyCode
           }
-          shippingAddress {
-            firstName
-            lastName
-            address1
-            address2
-            city
-            province
-            country
-            zip
-          }
           lineItems(first: 50) {
             nodes {
+              id
               title
-              name
-              variantTitle
               quantity
               image {
                 url
                 altText
-              }
-              currentTotalPrice {
-                amount
-                currencyCode
-              }
-              totalPrice {
-                amount
-                currencyCode
-              }
-            }
-          }
-          fulfillments(first: 10) {
-            nodes {
-              status
-              createdAt
-              latestShipmentStatus {
-                status
-              }
-              trackingInformation {
-                number
-                url
-                company
               }
             }
           }
@@ -121,60 +81,18 @@ export const CUSTOMER_ORDER_QUERY = `
       name
       processedAt
       fulfillmentStatus
-      financialStatus
       totalPrice {
         amount
         currencyCode
       }
-      totalShipping {
-        amount
-        currencyCode
-      }
-      totalTax {
-        amount
-        currencyCode
-      }
-      shippingAddress {
-        firstName
-        lastName
-        address1
-        address2
-        city
-        province
-        country
-        zip
-      }
       lineItems(first: 50) {
         nodes {
+          id
           title
-          name
-          variantTitle
           quantity
           image {
             url
             altText
-          }
-          currentTotalPrice {
-            amount
-            currencyCode
-          }
-          totalPrice {
-            amount
-            currencyCode
-          }
-        }
-      }
-      fulfillments(first: 20) {
-        nodes {
-          status
-          createdAt
-          latestShipmentStatus {
-            status
-          }
-          trackingInformation {
-            number
-            url
-            company
           }
         }
       }

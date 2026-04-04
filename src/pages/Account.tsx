@@ -27,18 +27,14 @@ export default function Account() {
     number?: number;
     processedAt?: string;
     fulfillmentStatus?: string;
-    financialStatus?: string;
     totalPrice?: { amount: string; currencyCode: string } | null;
-    statusPageUrl?: string;
     lineItems?: {
       nodes?: Array<{
+        id?: string;
         title?: string;
         name?: string;
         quantity?: number;
-        variantTitle?: string;
         image?: { url?: string; altText?: string } | null;
-        currentTotalPrice?: { amount?: string; currencyCode?: string } | null;
-        totalPrice?: { amount?: string; currencyCode?: string } | null;
       }>;
     } | null;
   };
@@ -161,9 +157,6 @@ export default function Account() {
                           {o.fulfillmentStatus && (
                             <p className="text-xs px-2 py-1 rounded bg-muted inline-block">{o.fulfillmentStatus.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}</p>
                           )}
-                          {o.financialStatus && (
-                            <p className="text-xs px-2 py-1 rounded bg-muted inline-block mt-1">{o.financialStatus.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}</p>
-                          )}
                           <p className="font-medium">
                             {o.totalPrice?.amount} {o.totalPrice?.currencyCode}
                           </p>
@@ -173,10 +166,15 @@ export default function Account() {
                       {o.lineItems?.nodes && o.lineItems.nodes.length > 0 && (
                         <div className="divide-y">
                           {o.lineItems.nodes.map((node, idx) => {
-                            const name = node.title || node.name || node.variantTitle || "Item";
+                            const name = node.title || node.name || "Item";
                             return (
                               <div key={idx} className="py-2 flex items-center justify-between">
-                                <div className="truncate">
+                                <div className="flex items-center gap-3 truncate">
+                                  {node.image?.url ? (
+                                    <img src={node.image.url} alt={node.image.altText || name} className="w-10 h-10 rounded object-cover" />
+                                  ) : (
+                                    <div className="w-10 h-10 rounded bg-muted" />
+                                  )}
                                   <p className="text-sm">{name}</p>
                                 </div>
                                 <div className="text-sm text-muted-foreground">Qty {node.quantity ?? 1}</div>
