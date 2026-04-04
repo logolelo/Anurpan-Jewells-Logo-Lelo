@@ -14,6 +14,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Login from "./pages/Login";
 import AuthCallback from "./pages/AuthCallback";
 import Account from "./pages/Account";
+import OrderDetail from "./pages/OrderDetail";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/account" element={<Account />} />
+        <Route path="/account/orders/:orderId" element={<OrderDetail />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

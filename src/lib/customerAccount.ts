@@ -44,7 +44,7 @@ export async function customerAccountRequest(query: string, variables: Record<st
 }
 
 export const CUSTOMER_ORDERS_QUERY = `
-  query CustomerOrders($first: Int!) {
+  query CustomerOrders($first: Int!, $reverse: Boolean = true) {
     customer {
       id
       emailAddress {
@@ -53,28 +53,51 @@ export const CUSTOMER_ORDERS_QUERY = `
       firstName
       lastName
       displayName
-      orders(first: $first) {
+      orders(first: $first, sortKey: PROCESSED_AT, reverse: $reverse) {
         edges {
           node {
             id
             name
-            number
             processedAt
             fulfillmentStatus
+            financialStatus
             totalPrice {
               amount
               currencyCode
             }
+            totalShipping {
+              amount
+              currencyCode
+            }
+            totalTax {
+              amount
+              currencyCode
+            }
             statusPageUrl
+            shippingAddress {
+              firstName
+              lastName
+              address1
+              address2
+              city
+              province
+              country
+              zip
+            }
             lineItems(first: 50) {
               edges {
                 node {
                   title
                   quantity
+                  totalPrice {
+                    amount
+                    currencyCode
+                  }
                   variant {
                     title
                     image {
                       url
+                      altText
                     }
                     product {
                       title
@@ -83,6 +106,88 @@ export const CUSTOMER_ORDERS_QUERY = `
                 }
               }
             }
+            fulfillments(first: 10) {
+              edges {
+                node {
+                  status
+                  trackingInfo(first: 10) {
+                    number
+                    url
+                    company
+                  }
+                  createdAt
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const CUSTOMER_ORDER_QUERY = `
+  query CustomerOrder($id: ID!) {
+    order(id: $id) {
+      id
+      name
+      processedAt
+      fulfillmentStatus
+      financialStatus
+      totalPrice {
+        amount
+        currencyCode
+      }
+      totalShipping {
+        amount
+        currencyCode
+      }
+      totalTax {
+        amount
+        currencyCode
+      }
+      shippingAddress {
+        firstName
+        lastName
+        address1
+        address2
+        city
+        province
+        country
+        zip
+      }
+      lineItems(first: 50) {
+        edges {
+          node {
+            title
+            quantity
+            totalPrice {
+              amount
+              currencyCode
+            }
+            variant {
+              title
+              image {
+                url
+                altText
+              }
+              product {
+                title
+              }
+            }
+          }
+        }
+      }
+      fulfillments(first: 20) {
+        edges {
+          node {
+            status
+            trackingInfo(first: 20) {
+              number
+              url
+              company
+            }
+            createdAt
           }
         }
       }

@@ -5,6 +5,7 @@ import { isAuthenticated, getIdTokenClaims, startLogin } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import { customerAccountRequest, CUSTOMER_ORDERS_QUERY, getCustomerAccountEndpoint } from "@/lib/customerAccount";
 import { User } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Account() {
   const authed = isAuthenticated();
@@ -26,6 +27,7 @@ export default function Account() {
     number?: number;
     processedAt?: string;
     fulfillmentStatus?: string;
+    financialStatus?: string;
     totalPrice?: { amount: string; currencyCode: string } | null;
     statusPageUrl?: string;
     lineItems?: {
@@ -161,12 +163,13 @@ export default function Account() {
                           {o.fulfillmentStatus && (
                             <p className="text-xs px-2 py-1 rounded bg-muted inline-block">{o.fulfillmentStatus.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}</p>
                           )}
+                          {o.financialStatus && (
+                            <p className="text-xs px-2 py-1 rounded bg-muted inline-block mt-1">{o.financialStatus.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}</p>
+                          )}
                           <p className="font-medium">
                             {o.totalPrice?.amount} {o.totalPrice?.currencyCode}
                           </p>
-                          {o.statusPageUrl && (
-                            <a href={o.statusPageUrl} className="text-primary text-sm" target="_blank" rel="noopener noreferrer">View status</a>
-                          )}
+                          <Link to={`/account/orders/${encodeURIComponent(o.id)}`} className="text-primary text-sm">View details</Link>
                         </div>
                       </div>
                       {o.lineItems?.edges && o.lineItems.edges.length > 0 && (
