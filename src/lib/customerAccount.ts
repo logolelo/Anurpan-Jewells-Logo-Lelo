@@ -54,68 +54,57 @@ export const CUSTOMER_ORDERS_QUERY = `
       lastName
       displayName
       orders(first: $first, sortKey: PROCESSED_AT, reverse: $reverse) {
-        edges {
-          node {
-            id
-            name
-            processedAt
-            fulfillmentStatus
-            financialStatus
-            totalPrice {
-              amount
-              currencyCode
-            }
-            totalShipping {
-              amount
-              currencyCode
-            }
-            totalTax {
-              amount
-              currencyCode
-            }
-            statusPageUrl
-            shippingAddress {
-              firstName
-              lastName
-              address1
-              address2
-              city
-              province
-              country
-              zip
-            }
-            lineItems(first: 50) {
-              edges {
-                node {
-                  title
-                  variantTitle
-                  quantity
-                  image {
-                    url
-                    altText
-                  }
-                  currentTotalPrice {
-                    amount
-                    currencyCode
-                  }
-                  totalPrice {
-                    amount
-                    currencyCode
-                  }
-                }
+        nodes {
+          id
+          name
+          processedAt
+          fulfillmentStatus
+          financialStatus
+          totalPrice {
+            amount
+            currencyCode
+          }
+          shippingAddress {
+            firstName
+            lastName
+            address1
+            address2
+            city
+            province
+            country
+            zip
+          }
+          lineItems(first: 50) {
+            nodes {
+              title
+              name
+              variantTitle
+              quantity
+              image {
+                url
+                altText
+              }
+              currentTotalPrice {
+                amount
+                currencyCode
+              }
+              totalPrice {
+                amount
+                currencyCode
               }
             }
-            fulfillments(first: 10) {
-              edges {
-                node {
-                  status
-                  trackingInfo(first: 10) {
-                    number
-                    url
-                    company
-                  }
-                  createdAt
-                }
+          }
+          fulfillments(first: 10) {
+            nodes {
+              status
+              createdAt
+              latestShipmentStatus {
+                status
+              }
+              trackingInformation {
+                number
+                url
+                company
               }
             }
           }
@@ -128,7 +117,7 @@ export const CUSTOMER_ORDERS_QUERY = `
 export const CUSTOMER_ORDER_QUERY = `
   query CustomerOrder($id: ID!) {
     order(id: $id) {
-      id
+            id
       name
       processedAt
       fulfillmentStatus
@@ -156,36 +145,36 @@ export const CUSTOMER_ORDER_QUERY = `
         zip
       }
       lineItems(first: 50) {
-        edges {
-          node {
-            title
-            variantTitle
-            quantity
-            image {
-              url
-              altText
-            }
-            currentTotalPrice {
-              amount
-              currencyCode
-            }
-            totalPrice {
-              amount
-              currencyCode
-            }
+        nodes {
+          title
+          name
+          variantTitle
+          quantity
+          image {
+            url
+            altText
+          }
+          currentTotalPrice {
+            amount
+            currencyCode
+          }
+          totalPrice {
+            amount
+            currencyCode
           }
         }
       }
       fulfillments(first: 20) {
-        edges {
-          node {
+        nodes {
+          status
+          createdAt
+          latestShipmentStatus {
             status
-            trackingInfo(first: 20) {
-              number
-              url
-              company
-            }
-            createdAt
+          }
+          trackingInformation {
+            number
+            url
+            company
           }
         }
       }

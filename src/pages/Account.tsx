@@ -31,15 +31,14 @@ export default function Account() {
     totalPrice?: { amount: string; currencyCode: string } | null;
     statusPageUrl?: string;
     lineItems?: {
-      edges?: Array<{
-        node: {
-          title?: string;
-          quantity?: number;
-          variantTitle?: string;
-          image?: { url?: string; altText?: string } | null;
-          currentTotalPrice?: { amount?: string; currencyCode?: string } | null;
-          totalPrice?: { amount?: string; currencyCode?: string } | null;
-        };
+      nodes?: Array<{
+        title?: string;
+        name?: string;
+        quantity?: number;
+        variantTitle?: string;
+        image?: { url?: string; altText?: string } | null;
+        currentTotalPrice?: { amount?: string; currencyCode?: string } | null;
+        totalPrice?: { amount?: string; currencyCode?: string } | null;
       }>;
     } | null;
   };
@@ -171,10 +170,10 @@ export default function Account() {
                           <Link to={`/account/orders/${encodeURIComponent(o.id)}`} className="text-primary text-sm">View details</Link>
                         </div>
                       </div>
-                      {o.lineItems?.edges && o.lineItems.edges.length > 0 && (
+                      {o.lineItems?.nodes && o.lineItems.nodes.length > 0 && (
                         <div className="divide-y">
-                          {o.lineItems.edges.map(({ node }, idx) => {
-                            const name = node.title || node.variantTitle || "Item";
+                          {o.lineItems.nodes.map((node, idx) => {
+                            const name = node.title || node.name || node.variantTitle || "Item";
                             return (
                               <div key={idx} className="py-2 flex items-center justify-between">
                                 <div className="truncate">

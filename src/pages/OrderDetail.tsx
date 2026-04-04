@@ -20,11 +20,12 @@ type Address = {
 } | null;
 type FulfillmentInfo = {
   status?: string;
-  trackingInfo?: Array<{ number?: string; url?: string; company?: string }>;
   createdAt?: string;
+  trackingInformation?: Array<{ number?: string; url?: string; company?: string }>;
 };
 type LineItemNode = {
   title?: string;
+  name?: string;
   quantity?: number;
   totalPrice?: Money;
   currentTotalPrice?: Money;
@@ -41,8 +42,8 @@ type Order = {
   totalShipping?: Money;
   totalTax?: Money;
   shippingAddress?: Address;
-  lineItems?: { edges?: Array<{ node: LineItemNode }> } | null;
-  fulfillments?: { edges?: Array<{ node: FulfillmentInfo }> } | null;
+  lineItems?: { nodes?: Array<LineItemNode> } | null;
+  fulfillments?: { nodes?: Array<FulfillmentInfo> } | null;
 };
 
 export default function OrderDetail() {
@@ -126,10 +127,10 @@ export default function OrderDetail() {
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <h2 className="font-display text-xl font-semibold">Items</h2>
-                {order.lineItems?.edges && order.lineItems.edges.length > 0 ? (
+                {order.lineItems?.nodes && order.lineItems.nodes.length > 0 ? (
                   <div className="divide-y">
-                    {order.lineItems.edges.map(({ node }, idx) => {
-                      const name = node.title || node.variantTitle || "Item";
+                    {order.lineItems.nodes.map((node, idx) => {
+                      const name = node.title || node.name || node.variantTitle || "Item";
                       const img = node.image?.url;
                       return (
                         <div key={idx} className="py-3 flex items-center gap-3">
@@ -171,15 +172,15 @@ export default function OrderDetail() {
             </div>
             <div className="space-y-3">
               <h2 className="font-display text-xl font-semibold">Fulfillment</h2>
-              {order.fulfillments?.edges && order.fulfillments.edges.length > 0 ? (
+              {order.fulfillments?.nodes && order.fulfillments.nodes.length > 0 ? (
                 <div className="space-y-2">
-                  {order.fulfillments.edges.map(({ node }, idx) => (
+                  {order.fulfillments.nodes.map((node, idx) => (
                     <div key={idx} className="border border-border rounded-md p-3">
                       <p className="text-sm mb-1">{node.status}</p>
                       <p className="text-xs text-muted-foreground">{node.createdAt ? new Date(node.createdAt).toLocaleString() : ""}</p>
-                      {node.trackingInfo && node.trackingInfo.length > 0 && (
+                      {node.trackingInformation && node.trackingInformation.length > 0 && (
                         <div className="mt-2 space-y-1">
-                          {node.trackingInfo.map((t, i) => (
+                          {node.trackingInformation.map((t, i) => (
                             <div key={i} className="text-sm">
                               <span className="mr-2">{t.company}</span>
                               <span className="mr-2">{t.number}</span>
