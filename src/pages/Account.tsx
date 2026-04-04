@@ -25,8 +25,22 @@ export default function Account() {
     name?: string;
     number?: number;
     processedAt?: string;
+    displayFulfillmentStatus?: string;
     totalPrice?: { amount: string; currencyCode: string } | null;
     statusPageUrl?: string;
+    lineItems?: {
+      edges?: Array<{
+        node: {
+          title?: string;
+          quantity?: number;
+          variant?: {
+            title?: string;
+            image?: { url?: string } | null;
+            product?: { title?: string } | null;
+          } | null;
+        };
+      }>;
+    } | null;
   };
   const [orders, setOrders] = useState<OrderNode[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -53,8 +67,8 @@ export default function Account() {
         type GraphQLHttpError = { __httpError: string; __body?: string };
         type GraphQLErrorItem = { message: string };
         type GraphQLSuccess = { data?: { customer?: { firstName?: string; lastName?: string; displayName?: string; emailAddress?: { emailAddress: string }; orders?: { edges?: Array<{ node: OrderNode }> } } }; errors?: GraphQLErrorItem[] };
-        if ((data as GraphQLHttpError).__httpError) {
-          const httpErr = data as any;
+        if (typeof data === 'object' && data !== null && '__httpError' in data) {
+          const httpErr = data as GraphQLHttpError & { __endpoint?: string };
           let bodyMsg = httpErr.__body || "";
           if (bodyMsg.length > 200) {
             bodyMsg = bodyMsg.substring(0, 200) + "... (truncated)";
@@ -67,8 +81,8 @@ export default function Account() {
           setOrders(null);
           return;
         }
-        if ((data as any).error === 'Internal Server Error') {
-          const err = data as any;
+        if (typeof data === 'object' && data !== null && 'error' in data && (data as { error?: string }).error === 'Internal Server Error') {
+          const err = data as { message?: string; endpoint?: string };
           setError(`Server Error: ${err.message} - Endpoint: ${err.endpoint || 'unknown'}`);
           setOrders(null);
           return;
@@ -137,19 +151,39 @@ export default function Account() {
               ) : orders && orders.length > 0 ? (
                 <div className="space-y-2">
                   {orders.map((o) => (
-                    <div key={o.id} className="border border-border rounded-md p-4 flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{o.name || `Order #${o.number}`}</p>
-                        <p className="text-sm text-muted-foreground">{o.processedAt ? new Date(o.processedAt).toLocaleString() : ""}</p>
+                    <div key={o.id} className="border border-border rounded-md p-4 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-medium">{o.name || `Order #${o.number}`}</p>
+                          <p className="text-sm text-muted-foreground">{o.processedAt ? new Date(o.processedAt).toLocaleString() : ""}</p>
+                        </div>
+                        <div className="text-right">
+                          {o.displayFulfillmentStatus && (
+                            <p className="text-xs px-2 py-1 rounded bg-muted inline-block">{o.displayFulfillmentStatus.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}</p>
+                          )}
+                          <p className="font-medium">
+                            {o.totalPrice?.amount} {o.totalPrice?.currencyCode}
+                          </p>
+                          {o.statusPageUrl && (
+                            <a href={o.statusPageUrl} className="text-primary text-sm" target="_blank" rel="noopener noreferrer">View status</a>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">
-                          {o.totalPrice?.amount} {o.totalPrice?.currencyCode}
-                        </p>
-                        {o.statusPageUrl && (
-                          <a href={o.statusPageUrl} className="text-primary text-sm" target="_blank" rel="noopener noreferrer">View status</a>
-                        )}
-                      </div>
+                      {o.lineItems?.edges && o.lineItems.edges.length > 0 && (
+                        <div className="divide-y">
+                          {o.lineItems.edges.map(({ node }, idx) => {
+                            const name = node.title || node.variant?.product?.title || node.variant?.title || "Item";
+                            return (
+                              <div key={idx} className="py-2 flex items-center justify-between">
+                                <div className="truncate">
+                                  <p className="text-sm">{name}</p>
+                                </div>
+                                <div className="text-sm text-muted-foreground">Qty {node.quantity ?? 1}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -22,7 +22,7 @@ export async function customerAccountRequest(query: string, variables: Record<st
     body: JSON.stringify({ query, variables }),
   });
   const text = await res.text();
-  let json: any = null;
+  let json: unknown = null;
   try {
     json = JSON.parse(text);
   } catch {
@@ -31,16 +31,16 @@ export async function customerAccountRequest(query: string, variables: Record<st
   
   if (!res.ok) {
     // If the proxy returned a structured error, use it.
-    if (json && (json.__httpError || json.error)) {
+    if (typeof json === 'object' && json !== null && ('__httpError' in json || 'error' in json)) {
       return {
-        ...json,
-        __httpError: json.__httpError || `${res.status} ${res.statusText}`,
-        __body: json.__body || text
+        ...(json as Record<string, unknown>),
+        __httpError: (json as Record<string, unknown>).__httpError || `${res.status} ${res.statusText}`,
+        __body: (json as Record<string, unknown>).__body || text
       };
     }
     return { __httpError: `${res.status} ${res.statusText}`, __body: text };
   }
-  return json || { __body: text };
+  return json ?? { __body: text };
 }
 
 export const CUSTOMER_ORDERS_QUERY = `
@@ -60,11 +60,29 @@ export const CUSTOMER_ORDERS_QUERY = `
             name
             number
             processedAt
+            displayFulfillmentStatus
             totalPrice {
               amount
               currencyCode
             }
             statusPageUrl
+            lineItems(first: 50) {
+              edges {
+                node {
+                  title
+                  quantity
+                  variant {
+                    title
+                    image {
+                      url
+                    }
+                    product {
+                      title
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
