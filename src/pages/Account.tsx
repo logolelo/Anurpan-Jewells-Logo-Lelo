@@ -25,7 +25,7 @@ export default function Account() {
     name?: string;
     number?: number;
     processedAt?: string;
-    displayFulfillmentStatus?: string;
+    fulfillmentStatus?: string;
     totalPrice?: { amount: string; currencyCode: string } | null;
     statusPageUrl?: string;
     lineItems?: {
@@ -158,8 +158,8 @@ export default function Account() {
                           <p className="text-sm text-muted-foreground">{o.processedAt ? new Date(o.processedAt).toLocaleString() : ""}</p>
                         </div>
                         <div className="text-right">
-                          {o.displayFulfillmentStatus && (
-                            <p className="text-xs px-2 py-1 rounded bg-muted inline-block">{o.displayFulfillmentStatus.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}</p>
+                          {o.fulfillmentStatus && (
+                            <p className="text-xs px-2 py-1 rounded bg-muted inline-block">{o.fulfillmentStatus.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}</p>
                           )}
                           <p className="font-medium">
                             {o.totalPrice?.amount} {o.totalPrice?.currencyCode}

@@ -60,7 +60,7 @@ export const CUSTOMER_ORDERS_QUERY = `
             name
             number
             processedAt
-            displayFulfillmentStatus
+            fulfillmentStatus
             totalPrice {
               amount
               currencyCode
