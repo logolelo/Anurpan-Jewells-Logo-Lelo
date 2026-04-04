@@ -44,29 +44,20 @@ export async function customerAccountRequest(query: string, variables: Record<st
 }
 
 export const CUSTOMER_ORDERS_QUERY = `
-  query CustomerOrders($first: Int!, $reverse: Boolean = true) {
+  query CustomerOrders($first: Int!) {
     customer {
-      id
-      orders(first: $first, sortKey: PROCESSED_AT, reverse: $reverse) {
-        nodes {
-          id
-          name
-          processedAt
-          fulfillmentStatus
-          totalPrice {
-            amount
-            currencyCode
-          }
-          lineItems(first: 50) {
-            nodes {
-              id
-              title
-              quantity
-              image {
-                url
-                altText
-              }
+      orders(first: $first) {
+        edges {
+          node {
+            id
+            name
+            number
+            processedAt
+            totalPrice {
+              amount
+              currencyCode
             }
+            statusPageUrl
           }
         }
       }

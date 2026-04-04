@@ -26,17 +26,8 @@ export default function Account() {
     name?: string;
     number?: number;
     processedAt?: string;
-    fulfillmentStatus?: string;
     totalPrice?: { amount: string; currencyCode: string } | null;
-    lineItems?: {
-      nodes?: Array<{
-        id?: string;
-        title?: string;
-        name?: string;
-        quantity?: number;
-        image?: { url?: string; altText?: string } | null;
-      }>;
-    } | null;
+    statusPageUrl?: string;
   };
   const [orders, setOrders] = useState<OrderNode[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -148,41 +139,20 @@ export default function Account() {
                 <div className="space-y-2">
                   {orders.map((o) => (
                     <div key={o.id} className="border border-border rounded-md p-4 space-y-3">
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-center justify-between">
                         <div>
                           <p className="font-medium">{o.name || `Order #${o.number}`}</p>
                           <p className="text-sm text-muted-foreground">{o.processedAt ? new Date(o.processedAt).toLocaleString() : ""}</p>
                         </div>
                         <div className="text-right">
-                          {o.fulfillmentStatus && (
-                            <p className="text-xs px-2 py-1 rounded bg-muted inline-block">{o.fulfillmentStatus.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}</p>
-                          )}
                           <p className="font-medium">
                             {o.totalPrice?.amount} {o.totalPrice?.currencyCode}
                           </p>
-                          <Link to={`/account/orders/${encodeURIComponent(o.id)}`} className="text-primary text-sm">View details</Link>
+                          {o.statusPageUrl && (
+                            <a href={o.statusPageUrl} className="text-primary text-sm" target="_blank" rel="noopener noreferrer">View status</a>
+                          )}
                         </div>
                       </div>
-                      {o.lineItems?.nodes && o.lineItems.nodes.length > 0 && (
-                        <div className="divide-y">
-                          {o.lineItems.nodes.map((node, idx) => {
-                            const name = node.title || node.name || "Item";
-                            return (
-                              <div key={idx} className="py-2 flex items-center justify-between">
-                                <div className="flex items-center gap-3 truncate">
-                                  {node.image?.url ? (
-                                    <img src={node.image.url} alt={node.image.altText || name} className="w-10 h-10 rounded object-cover" />
-                                  ) : (
-                                    <div className="w-10 h-10 rounded bg-muted" />
-                                  )}
-                                  <p className="text-sm">{name}</p>
-                                </div>
-                                <div className="text-sm text-muted-foreground">Qty {node.quantity ?? 1}</div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
