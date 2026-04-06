@@ -29,12 +29,13 @@ export default function Account() {
     totalPrice?: { amount: string; currencyCode: string } | null;
     statusPageUrl?: string;
     fulfillmentStatus?: string;
-    fulfillments?: Array<{
-      status?: string;
-      latestShipmentStatus?: string;
-      estimatedDeliveryAt?: string;
-      trackingInformation?: Array<{ number?: string; url?: string }>;
-    }>;
+    fulfillments?: {
+      nodes: Array<{
+        latestShipmentStatus?: string;
+        estimatedDeliveryAt?: string;
+        trackingInformation?: Array<{ number?: string; url?: string }>;
+      }>;
+    };
     lineItems?: {
       nodes: Array<{
         id: string;
@@ -171,16 +172,18 @@ export default function Account() {
                       <div className="flex items-center justify-between">
                         <div className="text-sm">
                           {(() => {
-                            const latest = o.fulfillments && o.fulfillments.length > 0 ? o.fulfillments[0].latestShipmentStatus || "" : "";
-                            const delivered = latest === "DELIVERED" || o.fulfillmentStatus === "FULFILLED" || (o.fulfillments || []).some(f => f.status === "FULFILLED");
+                            const fulfillmentsNodes = o.fulfillments?.nodes || [];
+                            const latest = fulfillmentsNodes.length > 0 ? fulfillmentsNodes[0].latestShipmentStatus || "" : "";
+                            const delivered = latest === "DELIVERED" || o.fulfillmentStatus === "FULFILLED";
                             const inTransit = latest === "IN_TRANSIT" || latest === "OUT_FOR_DELIVERY";
-                            const label = delivered ? "Delivered" : inTransit ? "In Transit" : (o.fulfillmentStatus === "FULFILLED" || (o.fulfillments || []).some(f => f.status === "FULFILLED")) ? "Fulfilled" : "Pending";
+                            const label = delivered ? "Delivered" : inTransit ? "In Transit" : (o.fulfillmentStatus === "FULFILLED") ? "Fulfilled" : "Pending";
                             return <span className="inline-block rounded px-2 py-1 bg-muted">{label}</span>;
                           })()}
                         </div>
                         <div className="text-right text-xs text-muted-foreground">
                           {(() => {
-                            const eta = (o.fulfillments || []).find(f => !!f.estimatedDeliveryAt)?.estimatedDeliveryAt;
+                            const fulfillmentsNodes = o.fulfillments?.nodes || [];
+                            const eta = fulfillmentsNodes.find(f => !!f.estimatedDeliveryAt)?.estimatedDeliveryAt;
                             return eta ? `ETA: ${new Date(eta).toLocaleDateString()}` : "";
                           })()}
                         </div>

@@ -60,12 +60,13 @@ export const CUSTOMER_ORDERS_QUERY = `
             statusPageUrl
             fulfillmentStatus
             fulfillments(first: 10) {
-              status
-              latestShipmentStatus
-              estimatedDeliveryAt
-              trackingInformation {
-                number
-                url
+              nodes {
+                latestShipmentStatus
+                estimatedDeliveryAt
+                trackingInformation {
+                  number
+                  url
+                }
               }
             }
             lineItems(first: 50) {
