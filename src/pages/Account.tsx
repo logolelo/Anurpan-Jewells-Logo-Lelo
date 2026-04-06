@@ -28,6 +28,21 @@ export default function Account() {
     processedAt?: string;
     totalPrice?: { amount: string; currencyCode: string } | null;
     statusPageUrl?: string;
+    fulfillmentStatus?: string;
+    fulfillments?: Array<{
+      status?: string;
+      latestShipmentStatus?: string;
+      estimatedDeliveryAt?: string;
+      trackingInformation?: Array<{ number?: string; url?: string }>;
+    }>;
+    lineItems?: {
+      nodes: Array<{
+        id: string;
+        title?: string;
+        quantity?: number;
+        image?: { url?: string; altText?: string };
+      }>;
+    };
   };
   const [orders, setOrders] = useState<OrderNode[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -153,6 +168,42 @@ export default function Account() {
                           )}
                         </div>
                       </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          {(() => {
+                            const latest = o.fulfillments && o.fulfillments.length > 0 ? o.fulfillments[0].latestShipmentStatus || "" : "";
+                            const delivered = latest === "DELIVERED" || o.fulfillmentStatus === "FULFILLED" || (o.fulfillments || []).some(f => f.status === "FULFILLED");
+                            const inTransit = latest === "IN_TRANSIT" || latest === "OUT_FOR_DELIVERY";
+                            const label = delivered ? "Delivered" : inTransit ? "In Transit" : (o.fulfillmentStatus === "FULFILLED" || (o.fulfillments || []).some(f => f.status === "FULFILLED")) ? "Fulfilled" : "Pending";
+                            return <span className="inline-block rounded px-2 py-1 bg-muted">{label}</span>;
+                          })()}
+                        </div>
+                        <div className="text-right text-xs text-muted-foreground">
+                          {(() => {
+                            const eta = (o.fulfillments || []).find(f => !!f.estimatedDeliveryAt)?.estimatedDeliveryAt;
+                            return eta ? `ETA: ${new Date(eta).toLocaleDateString()}` : "";
+                          })()}
+                        </div>
+                      </div>
+                      {o.lineItems?.nodes && o.lineItems.nodes.length > 0 && (
+                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                          {o.lineItems.nodes.map((li) => (
+                            <div key={li.id} className="flex items-center gap-3">
+                              <div className="h-16 w-16 rounded overflow-hidden bg-muted flex items-center justify-center">
+                                {li.image?.url ? (
+                                  <img src={li.image.url} alt={li.image.altText || li.title || ""} className="h-full w-full object-cover" />
+                                ) : (
+                                  <div className="text-xs text-muted-foreground">No image</div>
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium">{li.title}</p>
+                                <p className="text-xs text-muted-foreground">Qty: {li.quantity}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

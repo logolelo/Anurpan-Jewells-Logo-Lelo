@@ -58,6 +58,27 @@ export const CUSTOMER_ORDERS_QUERY = `
               currencyCode
             }
             statusPageUrl
+            fulfillmentStatus
+            fulfillments(first: 10) {
+              status
+              latestShipmentStatus
+              estimatedDeliveryAt
+              trackingInformation {
+                number
+                url
+              }
+            }
+            lineItems(first: 50) {
+              nodes {
+                id
+                title
+                quantity
+                image {
+                  url
+                  altText
+                }
+              }
+            }
           }
         }
       }
