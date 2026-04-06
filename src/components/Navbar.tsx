@@ -87,7 +87,7 @@ export function Navbar() {
 
           {/* Logo */}
           <Link to="/" className="inline-flex items-center">
-            <img src="/logo.svg" alt="Anurpan" className="h-8 lg:h-10 w-auto" />
+            <img src="/Logo_Anurpan_Black_1.svg" alt="Anurpan" className="h-12 lg:h-14 w-auto" />
           </Link>
 
           {/* Desktop nav */}
