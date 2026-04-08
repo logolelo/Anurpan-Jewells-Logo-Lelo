@@ -53,6 +53,18 @@ const ProductDetail = () => {
   const compareAt = selectedVariant?.compareAtPrice ? parseFloat(selectedVariant.compareAtPrice.amount) : null;
   const hasDiscount = compareAt && compareAt > price;
 
+  const maxStock = selectedVariant?.quantityAvailable ?? 0;
+  const inStock = selectedVariant?.availableForSale ?? false;
+  const handleQuantityChange = (delta: number) => {
+    const newQty = quantity + delta;
+    if (newQty < 1) return;
+    if (maxStock && newQty > maxStock) {
+      toast.error(`Only ${maxStock} available in stock`);
+      return;
+    }
+    setQuantity(newQty);
+  };
+
   const similarProducts = allProducts?.filter(p => p.node.handle !== product.handle).slice(0, 10) || [];
 
   const handleAddToCart = async () => {
@@ -65,6 +77,7 @@ const ProductDetail = () => {
       price: selectedVariant.price,
       quantity,
       selectedOptions: selectedVariant.selectedOptions || [],
+      quantityAvailable: selectedVariant.quantityAvailable ?? null,
     });
     toast.success('Added to cart', { description: `${product.title} × ${quantity}`, position: 'top-center' });
   };
@@ -135,7 +148,13 @@ const ProductDetail = () => {
               {/* Availability */}
               <div className="flex items-center gap-2 mb-6">
                 {selectedVariant?.availableForSale ? (
-                  <><Check className="h-4 w-4 text-green-600" /><span className="text-sm text-green-600 font-medium">In Stock</span></>
+                  <>
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span className="text-sm text-green-600 font-medium">In Stock</span>
+                    {inStock && maxStock <= 10 && maxStock > 0 && (
+                      <span className="text-sm text-amber-600">In stock — only {maxStock} left</span>
+                    )}
+                  </>
                 ) : (
                   <span className="text-sm text-destructive font-medium">Out of Stock</span>
                 )}
@@ -169,7 +188,7 @@ const ProductDetail = () => {
               <div className="mb-8">
                 <p className="text-sm font-medium text-foreground mb-3">Quantity</p>
                 <div className="flex items-center gap-4 bg-muted/30 w-fit p-1.5 rounded-xl border border-border">
-                  <Button variant="outline" size="icon" className="rounded-lg h-9 w-9" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1}>
+                  <Button variant="outline" size="icon" className="rounded-lg h-9 w-9" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>
                     <Minus className="h-4 w-4" />
                   </Button>
                   <span className="w-10 text-center font-semibold text-lg">{quantity}</span>
@@ -177,7 +196,8 @@ const ProductDetail = () => {
                     variant="outline" 
                     size="icon" 
                     className="rounded-lg h-9 w-9" 
-                    onClick={() => setQuantity(quantity + 1)}
+                    onClick={() => handleQuantityChange(1)}
+                    disabled={maxStock ? quantity >= maxStock : false}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>

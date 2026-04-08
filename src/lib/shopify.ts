@@ -32,6 +32,7 @@ export interface ShopifyProduct {
           price: { amount: string; currencyCode: string };
           compareAtPrice?: { amount: string; currencyCode: string } | null;
           availableForSale: boolean;
+          quantityAvailable: number | null;
           selectedOptions: Array<{ name: string; value: string }>;
           image?: { url: string; altText: string | null } | null;
         };
@@ -97,6 +98,7 @@ const PRODUCTS_QUERY = `
                 price { amount currencyCode }
                 compareAtPrice { amount currencyCode }
                 availableForSale
+                quantityAvailable
                 selectedOptions { name value }
                 image { url altText }
               }
@@ -135,6 +137,7 @@ const PRODUCT_BY_HANDLE_QUERY = `
             price { amount currencyCode }
             compareAtPrice { amount currencyCode }
             availableForSale
+            quantityAvailable
             selectedOptions { name value }
             image { url altText }
           }
@@ -222,6 +225,7 @@ export interface CartItem {
   price: { amount: string; currencyCode: string };
   quantity: number;
   selectedOptions: Array<{ name: string; value: string }>;
+  quantityAvailable?: number | null;
 }
 
 export async function createShopifyCart(item: CartItem): Promise<{ cartId: string; checkoutUrl: string; lineId: string } | null> {

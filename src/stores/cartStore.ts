@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { toast } from 'sonner';
 import {
   CartItem,
   createShopifyCart,
@@ -37,7 +38,12 @@ export const useCartStore = create<CartStore>()(
       addItem: async (item) => {
         const { items, cartId, clearCart } = get();
         const existingItem = items.find(i => i.variantId === item.variantId);
-        
+        const existingQty = existingItem?.quantity ?? 0;
+        const proposed = existingQty + item.quantity;
+        if (item.quantityAvailable != null && proposed > item.quantityAvailable) {
+          toast.error(`Only ${item.quantityAvailable} available in stock`);
+          return;
+        }
 
         set({ isLoading: true });
         try {
@@ -71,11 +77,16 @@ export const useCartStore = create<CartStore>()(
         const { items, cartId, clearCart } = get();
         const item = items.find(i => i.variantId === variantId);
         if (!item?.lineId || !cartId) return;
-
+        if (item.quantityAvailable != null && quantity > item.quantityAvailable) {
+          toast.error(`Only ${item.quantityAvailable} available in stock`);
+          return;
+        }
 
         set({ isLoading: true });
         try {
           const result = await updateShopifyCartLine(cartId, item.lineId, quantity);
+          if (result.success) set({ items: get().items.map(i => i.variantId === variantId ? { ...i, quantity } : i) });
+          else if (result.cartNotFound) clearCart();
         } catch (error) { console.error('Failed to update:', error); }
         finally { set({ isLoading: false }); }
       },

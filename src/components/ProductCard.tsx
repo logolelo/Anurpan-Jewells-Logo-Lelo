@@ -33,6 +33,7 @@ export function ProductCard({ product }: ProductCardProps) {
       price: variant.price,
       quantity: 1,
       selectedOptions: variant.selectedOptions || [],
+      quantityAvailable: variant.quantityAvailable ?? null,
     });
     toast.success('Added to cart', { description: node.title, position: 'top-center' });
   };
