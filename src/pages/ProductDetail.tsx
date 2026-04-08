@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 const ProductDetail = () => {
   const { handle } = useParams<{ handle: string }>();
-  const { data: product, isLoading } = useProductByHandle(handle || '');
+  const { data: product, isLoading, error } = useProductByHandle(handle || '');
   const { data: allProducts } = useProducts();
   const addItem = useCartStore(state => state.addItem);
   const cartLoading = useCartStore(state => state.isLoading);
@@ -31,7 +31,7 @@ const ProductDetail = () => {
     );
   }
 
-  if (!product) {
+  if (error || !product) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -53,19 +53,10 @@ const ProductDetail = () => {
   const compareAt = selectedVariant?.compareAtPrice ? parseFloat(selectedVariant.compareAtPrice.amount) : null;
   const hasDiscount = compareAt && compareAt > price;
 
-  const cartItems = useCartStore(state => state.items);
-  const existingInCart = cartItems.find(i => i.variantId === selectedVariant?.id)?.quantity ?? 0;
-  const maxQty = selectedVariant?.quantityAvailable ?? Infinity;
-  const remainingStock = Math.max(0, (typeof maxQty === 'number' ? maxQty : Infinity) - existingInCart);
-
   const similarProducts = allProducts?.filter(p => p.node.handle !== product.handle).slice(0, 10) || [];
 
   const handleAddToCart = async () => {
     if (!selectedVariant) return;
-    if (quantity > remainingStock) {
-      toast.error(`Only ${maxQty} available in stock`);
-      return;
-    }
 
     await addItem({
       product: { node: product },
@@ -144,12 +135,7 @@ const ProductDetail = () => {
               {/* Availability */}
               <div className="flex items-center gap-2 mb-6">
                 {selectedVariant?.availableForSale ? (
-                  <>
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span className="text-sm text-green-600 font-medium">
-                      {maxQty !== Infinity && maxQty <= 5 ? `Only ${maxQty} left` : 'In Stock'}
-                    </span>
-                  </>
+                  <><Check className="h-4 w-4 text-green-600" /><span className="text-sm text-green-600 font-medium">In Stock</span></>
                 ) : (
                   <span className="text-sm text-destructive font-medium">Out of Stock</span>
                 )}
@@ -168,7 +154,7 @@ const ProductDetail = () => {
                       return (
                         <button
                           key={value}
-                          onClick={() => { setSelectedVariantIndex(variantIdx >= 0 ? variantIdx : 0); setQuantity(1); }}
+                          onClick={() => { setSelectedVariantIndex(variantIdx >= 0 ? variantIdx : 0); }}
                           className={`px-4 py-2 rounded-lg text-sm border-2 transition-all ${isSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:border-primary'}`}
                         >
                           {value}
@@ -191,14 +177,7 @@ const ProductDetail = () => {
                     variant="outline" 
                     size="icon" 
                     className="rounded-lg h-9 w-9" 
-                    onClick={() => {
-                      if (quantity + 1 > remainingStock) {
-                        toast.error(`Only ${maxQty} available in stock`);
-                        return;
-                      }
-                      setQuantity(quantity + 1);
-                    }}
-                    disabled={quantity >= remainingStock}
+                    onClick={() => setQuantity(quantity + 1)}
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
