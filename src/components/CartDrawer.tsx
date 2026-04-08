@@ -72,26 +72,31 @@ export function CartDrawer() {
                         <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => removeItem(item.variantId)}>
                           <Trash2 className="h-3 w-3" />
                         </Button>
-                          <div className="flex items-center gap-1">
-                            <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.variantId, item.quantity - 1)}>
-                              <Minus className="h-3 w-3" />
-                            </Button>
-                            <span className="w-8 text-center text-sm">{item.quantity}</span>
-                            <Button 
-                              variant="outline" 
-                              size="icon" 
-                              className="h-6 w-6" 
-                              onClick={() => {
-                                if (item.quantityAvailable != null && item.quantity >= item.quantityAvailable) {
-                                  toast.error(`Only ${item.quantityAvailable} available in stock`);
-                                  return;
-                                }
-                                updateQuantity(item.variantId, item.quantity + 1);
-                              }}
-                              disabled={item.quantityAvailable != null && item.quantity >= item.quantityAvailable}
-                            >
-                              <Plus className="h-3 w-3" />
-                            </Button>
+                          <div className="flex flex-col items-end gap-1.5">
+                            <div className="flex items-center gap-1">
+                              <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.variantId, item.quantity - 1)}>
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <span className="w-8 text-center text-sm">{item.quantity}</span>
+                              <Button 
+                                variant="outline" 
+                                size="icon" 
+                                className="h-6 w-6" 
+                                onClick={() => {
+                                  if (item.quantityAvailable != null && item.quantity >= item.quantityAvailable) {
+                                    toast.error(`Only ${item.quantityAvailable} available in stock`);
+                                    return;
+                                  }
+                                  updateQuantity(item.variantId, item.quantity + 1);
+                                }}
+                                disabled={item.quantityAvailable != null && item.quantity >= item.quantityAvailable}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            {item.quantityAvailable != null && item.quantity >= item.quantityAvailable && (
+                              <span className="text-[10px] leading-none font-medium text-destructive animate-pulse">Max stock reached</span>
+                            )}
                           </div>
                       </div>
                     </div>

@@ -55,6 +55,7 @@ const ProductDetail = () => {
 
   const maxStock = selectedVariant?.quantityAvailable ?? 0;
   const inStock = selectedVariant?.availableForSale ?? false;
+  const lowStock = inStock && maxStock > 0 && maxStock <= 10;
   const handleQuantityChange = (delta: number) => {
     const newQty = quantity + delta;
     if (newQty < 1) return;
@@ -149,11 +150,10 @@ const ProductDetail = () => {
               <div className="flex items-center gap-2 mb-6">
                 {selectedVariant?.availableForSale ? (
                   <>
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span className="text-sm text-green-600 font-medium">In Stock</span>
-                    {inStock && maxStock <= 10 && maxStock > 0 && (
-                      <span className="text-sm text-amber-600">In stock — only {maxStock} left</span>
-                    )}
+                    <Check className={`h-4 w-4 ${lowStock ? 'text-amber-600' : 'text-green-600'}`} />
+                    <span className={`text-sm font-medium ${lowStock ? 'text-amber-600' : 'text-green-600'}`}>
+                      {lowStock ? `In stock — only ${maxStock} left` : 'In Stock'}
+                    </span>
                   </>
                 ) : (
                   <span className="text-sm text-destructive font-medium">Out of Stock</span>
@@ -186,7 +186,12 @@ const ProductDetail = () => {
 
               {/* Quantity */}
               <div className="mb-8">
-                <p className="text-sm font-medium text-foreground mb-3">Quantity</p>
+                <div className="flex justify-between items-center mb-3">
+                  <p className="text-sm font-medium text-foreground">Quantity</p>
+                  {maxStock > 0 && quantity >= maxStock && (
+                    <span className="text-xs font-medium text-destructive animate-pulse">Max stock reached</span>
+                  )}
+                </div>
                 <div className="flex items-center gap-4 bg-muted/30 w-fit p-1.5 rounded-xl border border-border">
                   <Button variant="outline" size="icon" className="rounded-lg h-9 w-9" onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>
                     <Minus className="h-4 w-4" />
