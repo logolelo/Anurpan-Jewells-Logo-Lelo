@@ -53,10 +53,20 @@ const ProductDetail = () => {
   const compareAt = selectedVariant?.compareAtPrice ? parseFloat(selectedVariant.compareAtPrice.amount) : null;
   const hasDiscount = compareAt && compareAt > price;
 
+  const cartItems = useCartStore(state => state.items);
+  const existingInCart = cartItems.find(i => i.variantId === selectedVariant?.id)?.quantity ?? 0;
+  const maxQty = selectedVariant?.quantityAvailable ?? Infinity;
+  const remainingStock = Math.max(0, (typeof maxQty === 'number' ? maxQty : Infinity) - existingInCart);
+
   const similarProducts = allProducts?.filter(p => p.node.handle !== product.handle).slice(0, 10) || [];
 
   const handleAddToCart = async () => {
     if (!selectedVariant) return;
+    if (quantity > remainingStock) {
+      toast.error(`Only ${maxQty} available in stock`);
+      return;
+    }
+
     await addItem({
       product: { node: product },
       variantId: selectedVariant.id,
@@ -134,7 +144,12 @@ const ProductDetail = () => {
               {/* Availability */}
               <div className="flex items-center gap-2 mb-6">
                 {selectedVariant?.availableForSale ? (
-                  <><Check className="h-4 w-4 text-green-600" /><span className="text-sm text-green-600 font-medium">In Stock</span></>
+                  <>
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span className="text-sm text-green-600 font-medium">
+                      {maxQty !== Infinity && maxQty <= 5 ? `Only ${maxQty} left` : 'In Stock'}
+                    </span>
+                  </>
                 ) : (
                   <span className="text-sm text-destructive font-medium">Out of Stock</span>
                 )}
@@ -153,7 +168,7 @@ const ProductDetail = () => {
                       return (
                         <button
                           key={value}
-                          onClick={() => { setSelectedVariantIndex(variantIdx >= 0 ? variantIdx : 0); }}
+                          onClick={() => { setSelectedVariantIndex(variantIdx >= 0 ? variantIdx : 0); setQuantity(1); }}
                           className={`px-4 py-2 rounded-lg text-sm border-2 transition-all ${isSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:border-primary'}`}
                         >
                           {value}
@@ -165,14 +180,26 @@ const ProductDetail = () => {
               ))}
 
               {/* Quantity */}
-              <div className="mb-6">
-                <p className="text-sm font-medium text-foreground mb-2">Quantity</p>
-                <div className="flex items-center gap-3">
-                  <Button variant="outline" size="icon" className="rounded-lg" onClick={() => setQuantity(Math.max(1, quantity - 1))}>
+              <div className="mb-8">
+                <p className="text-sm font-medium text-foreground mb-3">Quantity</p>
+                <div className="flex items-center gap-4 bg-muted/30 w-fit p-1.5 rounded-xl border border-border">
+                  <Button variant="outline" size="icon" className="rounded-lg h-9 w-9" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1}>
                     <Minus className="h-4 w-4" />
                   </Button>
-                  <span className="w-12 text-center font-semibold text-lg">{quantity}</span>
-                  <Button variant="outline" size="icon" className="rounded-lg" onClick={() => setQuantity(quantity + 1)}>
+                  <span className="w-10 text-center font-semibold text-lg">{quantity}</span>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="rounded-lg h-9 w-9" 
+                    onClick={() => {
+                      if (quantity + 1 > remainingStock) {
+                        toast.error(`Only ${maxQty} available in stock`);
+                        return;
+                      }
+                      setQuantity(quantity + 1);
+                    }}
+                    disabled={quantity >= remainingStock}
+                  >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>

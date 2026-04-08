@@ -4,10 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ShoppingCart, Minus, Plus, Trash2, ExternalLink, Loader2 } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
+import { toast } from "sonner";
 
 export function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
   const { items, isLoading, isSyncing, updateQuantity, removeItem, getCheckoutUrl, syncCart } = useCartStore();
+
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => sum + (parseFloat(item.price.amount) * item.quantity), 0);
 
@@ -70,15 +72,33 @@ export function CartDrawer() {
                         <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => removeItem(item.variantId)}>
                           <Trash2 className="h-3 w-3" />
                         </Button>
-                        <div className="flex items-center gap-1">
-                          <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.variantId, item.quantity - 1)}>
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="w-8 text-center text-sm">{item.quantity}</span>
-                          <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.variantId, item.quantity + 1)}>
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        </div>
+                          <div className="flex items-center gap-1">
+                            <Button variant="outline" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.variantId, item.quantity - 1)}>
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="w-8 text-center text-sm">{item.quantity}</span>
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              className="h-6 w-6" 
+                              onClick={() => {
+                                const variant = item.product.node.variants.edges.find(v => v.node.id === item.variantId)?.node;
+                                const maxQty = variant?.quantityAvailable ?? Infinity;
+                                if (item.quantity >= maxQty) {
+                                  toast.error(`Only ${maxQty} available in stock`);
+                                  return;
+                                }
+                                updateQuantity(item.variantId, item.quantity + 1);
+                              }}
+                              disabled={(() => {
+                                const variant = item.product.node.variants.edges.find(v => v.node.id === item.variantId)?.node;
+                                const maxQty = variant?.quantityAvailable ?? Infinity;
+                                return item.quantity >= maxQty;
+                              })()}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
                       </div>
                     </div>
                   ))}

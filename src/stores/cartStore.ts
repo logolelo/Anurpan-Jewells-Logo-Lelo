@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { toast } from 'sonner';
 import {
   CartItem,
   createShopifyCart,
@@ -37,6 +38,17 @@ export const useCartStore = create<CartStore>()(
       addItem: async (item) => {
         const { items, cartId, clearCart } = get();
         const existingItem = items.find(i => i.variantId === item.variantId);
+        const variant = item.product.node.variants.edges.find(v => v.node.id === item.variantId)?.node;
+        const maxQty = variant?.quantityAvailable;
+        if (maxQty != null) {
+          const existingQty = existingItem?.quantity ?? 0;
+          if (existingQty + item.quantity > maxQty) {
+            toast.error(`Only ${maxQty} available in stock`);
+            return;
+          }
+        }
+        
+
         set({ isLoading: true });
         try {
           if (!cartId) {
@@ -69,6 +81,14 @@ export const useCartStore = create<CartStore>()(
         const { items, cartId, clearCart } = get();
         const item = items.find(i => i.variantId === variantId);
         if (!item?.lineId || !cartId) return;
+        const variant = item.product.node.variants.edges.find(v => v.node.id === variantId)?.node;
+        const maxQty = variant?.quantityAvailable;
+        if (maxQty != null && quantity > maxQty) {
+          toast.error(`Only ${maxQty} available in stock`);
+          return;
+        }
+
+
         set({ isLoading: true });
         try {
           const result = await updateShopifyCartLine(cartId, item.lineId, quantity);
