@@ -58,10 +58,15 @@ export function Footer() {
             </ul>
           </div>
           
-          {/* Legal */}
+          {/* Information */}
           <div className="md:col-span-2 lg:col-span-1">
-            <h4 className="font-display font-semibold text-secondary mb-4">Legal</h4>
+            <h4 className="font-display font-semibold text-secondary mb-4">Information</h4>
             <ul className="space-y-2">
+              <li>
+                <Link to="/about-us" className="text-sm text-primary-foreground/70 hover:text-secondary transition-colors">
+                  About Us
+                </Link>
+              </li>
               <li>
                 <Link to="/terms" className="text-sm text-primary-foreground/70 hover:text-secondary transition-colors">
                   Terms and Conditions

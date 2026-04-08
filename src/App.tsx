@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import Terms from "./pages/Terms";
 import RefundPolicy from "./pages/RefundPolicy";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import AboutUs from "./pages/AboutUs";
 import Login from "./pages/Login";
 import AuthCallback from "./pages/AuthCallback";
 import Account from "./pages/Account";
@@ -26,6 +27,7 @@ function AppContent() {
         <Route path="/" element={<Index />} />
         <Route path="/products" element={<Products />} />
         <Route path="/product/:handle" element={<ProductDetail />} />
+        <Route path="/about-us" element={<AboutUs />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/refund-policy" element={<RefundPolicy />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
