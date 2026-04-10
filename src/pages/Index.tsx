@@ -11,8 +11,13 @@ import { Loader2 } from 'lucide-react';
 const Index = () => {
   const { data: products, isLoading } = useProducts();
 
-  const bestSellers = products?.slice(0, 10) || [];
-  const newArrivals = products?.slice(0, 10) || [];
+  const hasTag = (p: any, tag: string) =>
+    (p?.node?.tags || []).some((t: string) => t?.toLowerCase() === tag.toLowerCase());
+
+  const bestSellers =
+    products?.filter((p) => hasTag(p, 'Best Sellers')).slice(0, 10) || [];
+  const newArrivals =
+    products?.filter((p) => hasTag(p, 'New Arrivals')).slice(0, 10) || [];
 
   return (
     <div className="min-h-screen flex flex-col">
