@@ -226,9 +226,6 @@ export default function Account() {
                           <p className="font-semibold">
                             {o.totalPrice?.amount} {o.totalPrice?.currencyCode}
                           </p>
-                          {o.statusPageUrl && (
-                            <a href={o.statusPageUrl} className="text-primary text-sm" target="_blank" rel="noopener noreferrer">Track</a>
-                          )}
                         </div>
                       </div>
                       {(o.confirmationNumber || (o.email && o.email !== (customerInfo?.email || ""))) && (
