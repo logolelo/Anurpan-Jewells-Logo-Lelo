@@ -58,6 +58,10 @@ export const CUSTOMER_ORDERS_QUERY = `
             number
             processedAt
             financialStatus
+            fulfillmentStatus
+            confirmationNumber
+            cancelledAt
+            email
             totalPrice {
               amount
               currencyCode
@@ -74,9 +78,30 @@ export const CUSTOMER_ORDERS_QUERY = `
               amount
               currencyCode
             }
+            totalDuties {
+              amount
+              currencyCode
+            }
+            totalRefunded {
+              amount
+              currencyCode
+            }
+            totalTip {
+              amount
+              currencyCode
+            }
             statusPageUrl
-            fulfillmentStatus
             shippingAddress {
+              address1
+              address2
+              city
+              zoneCode
+              zip
+              territoryCode
+            }
+            billingAddress {
+              firstName
+              lastName
               address1
               address2
               city

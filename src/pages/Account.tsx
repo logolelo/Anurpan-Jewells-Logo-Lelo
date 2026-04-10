@@ -29,13 +29,29 @@ export default function Account() {
     number?: number;
     processedAt?: string;
     financialStatus?: string;
+    confirmationNumber?: string | null;
+    cancelledAt?: string | null;
+    email?: string | null;
     totalPrice?: { amount: string; currencyCode: string } | null;
     subtotal?: { amount: string; currencyCode: string } | null;
     totalShipping?: { amount: string; currencyCode: string } | null;
     totalTax?: { amount: string; currencyCode: string } | null;
+    totalDuties?: { amount: string; currencyCode: string } | null;
+    totalRefunded?: { amount: string; currencyCode: string } | null;
+    totalTip?: { amount: string; currencyCode: string } | null;
     statusPageUrl?: string;
     fulfillmentStatus?: string;
     shippingAddress?: {
+      address1?: string;
+      address2?: string;
+      city?: string;
+      zoneCode?: string;
+      zip?: string;
+      territoryCode?: string;
+    } | null;
+    billingAddress?: {
+      firstName?: string;
+      lastName?: string;
       address1?: string;
       address2?: string;
       city?: string;
@@ -193,6 +209,18 @@ export default function Account() {
                               latestShipmentStatus={o.fulfillments?.nodes?.[0]?.latestShipmentStatus}
                             />
                           </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            {o.financialStatus && (
+                              <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-muted text-foreground">
+                                {o.financialStatus}
+                              </span>
+                            )}
+                            {o.cancelledAt && (
+                              <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium bg-destructive/10 text-destructive">
+                                Cancelled
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="text-right">
                           <p className="font-semibold">
@@ -203,6 +231,12 @@ export default function Account() {
                           )}
                         </div>
                       </div>
+                      {(o.confirmationNumber || (o.email && o.email !== (customerInfo?.email || ""))) && (
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          {o.confirmationNumber && <div>Confirmation: {o.confirmationNumber}</div>}
+                          {o.email && o.email !== (customerInfo?.email || "") && <div>Order Email: {o.email}</div>}
+                        </div>
+                      )}
                       {o.lineItems?.nodes && o.lineItems.nodes.length > 0 && (
                         <div className="mt-2">
                           <div className="grid gap-3">
@@ -225,6 +259,7 @@ export default function Account() {
                                       <p className="text-sm font-medium">{li.title}</p>
                                     )}
                                     <p className="text-xs text-muted-foreground">Qty: {li.quantity}{li.variantTitle ? ` • ${li.variantTitle}` : ""}</p>
+                                    {li.sku && <p className="text-xs text-muted-foreground">SKU: {li.sku}</p>}
                                   </div>
                                   <div className="text-sm text-muted-foreground">
                                     {li.totalPrice?.amount ? `${li.totalPrice.amount} ${li.totalPrice.currencyCode}` : ""}
@@ -264,6 +299,7 @@ export default function Account() {
                                     <p className="text-sm font-medium">{li.title}</p>
                                   )}
                                   <p className="text-xs text-muted-foreground">Qty: {li.quantity}{li.variantTitle ? ` • ${li.variantTitle}` : ""}</p>
+                                  {li.sku && <p className="text-xs text-muted-foreground">SKU: {li.sku}</p>}
                                 </div>
                                 <div className="text-sm">
                                   {li.totalPrice?.amount ? `${li.totalPrice.amount} ${li.totalPrice.currencyCode}` : ""}
@@ -273,7 +309,7 @@ export default function Account() {
                           })}
                         </div>
                       )}
-                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <div className="mt-3 grid gap-4 sm:grid-cols-2">
                         <div className="text-xs text-muted-foreground">
                           {(() => {
                             const f = o.fulfillments?.nodes?.[0];
@@ -295,16 +331,41 @@ export default function Account() {
                           <div className="text-muted-foreground">Subtotal: {o.subtotal?.amount ? `${o.subtotal.amount} ${o.subtotal.currencyCode}` : "-"}</div>
                           <div className="text-muted-foreground">Shipping: {o.totalShipping?.amount ? `${o.totalShipping.amount} ${o.totalShipping.currencyCode}` : "-"}</div>
                           <div className="text-muted-foreground">Tax: {o.totalTax?.amount ? `${o.totalTax.amount} ${o.totalTax.currencyCode}` : "-"}</div>
+                          {o.totalDuties?.amount && Number(o.totalDuties.amount) > 0 ? (
+                            <div className="text-muted-foreground">Duties: {o.totalDuties.amount} {o.totalDuties.currencyCode}</div>
+                          ) : null}
+                          {o.totalTip?.amount && Number(o.totalTip.amount) > 0 ? (
+                            <div className="text-muted-foreground">Tip: {o.totalTip.amount} {o.totalTip.currencyCode}</div>
+                          ) : null}
+                          {o.totalRefunded?.amount && Number(o.totalRefunded.amount) > 0 ? (
+                            <div className="text-destructive">Refunded: {o.totalRefunded.amount} {o.totalRefunded.currencyCode}</div>
+                          ) : null}
                           <div className="font-semibold">Total: {o.totalPrice?.amount} {o.totalPrice?.currencyCode}</div>
                         </div>
                       </div>
-                      {o.shippingAddress && (
-                        <div className="mt-2 text-xs text-muted-foreground">
-                          {(() => {
-                            const a = o.shippingAddress;
-                            const parts = [a.address1, a.address2, a.city, a.zoneCode, a.zip, a.territoryCode].filter(Boolean);
-                            return parts.join(", ");
-                          })()}
+                      {(o.shippingAddress || o.billingAddress) && (
+                        <div className="mt-3 grid gap-4 sm:grid-cols-2 text-xs text-muted-foreground">
+                          {o.shippingAddress && (
+                            <div>
+                              <div className="text-foreground font-medium mb-1">Shipping Address</div>
+                              {(() => {
+                                const a = o.shippingAddress!;
+                                const parts = [a.address1, a.address2, a.city, a.zoneCode, a.zip, a.territoryCode].filter(Boolean);
+                                return parts.join(", ");
+                              })()}
+                            </div>
+                          )}
+                          {o.billingAddress && (
+                            <div>
+                              <div className="text-foreground font-medium mb-1">Billing Address</div>
+                              {(() => {
+                                const b = o.billingAddress!;
+                                const name = [b.firstName, b.lastName].filter(Boolean).join(" ");
+                                const parts = [name, b.address1, b.address2, b.city, b.zoneCode, b.zip, b.territoryCode].filter(Boolean);
+                                return parts.join(", ");
+                              })()}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
