@@ -111,6 +111,30 @@ const PRODUCTS_QUERY = `
   }
 `;
 
+export async function resolveProductHandles(productIds: string[]): Promise<Record<string, string>> {
+  const uniqueIds = Array.from(new Set(productIds.filter(Boolean)));
+  if (uniqueIds.length === 0) return {};
+  const chunks: string[][] = [];
+  for (let i = 0; i < uniqueIds.length; i += 20) chunks.push(uniqueIds.slice(i, i + 20));
+  const result: Record<string, string> = {};
+  for (const chunk of chunks) {
+    const query = `
+      query Nodes($ids: [ID!]!) {
+        nodes(ids: $ids) {
+          ... on Product { id handle }
+          __typename
+        }
+      }
+    `;
+    const data = await storefrontApiRequest(query, { ids: chunk });
+    const nodes = data?.data?.nodes || [];
+    for (const n of nodes) {
+      if (n?.id && n?.handle) result[n.id] = n.handle;
+    }
+  }
+  return result;
+}
+
 const PRODUCT_BY_HANDLE_QUERY = `
   query GetProductByHandle($handle: String!) {
     product(handle: $handle) {

@@ -46,6 +46,10 @@ export async function customerAccountRequest(query: string, variables: Record<st
 export const CUSTOMER_ORDERS_QUERY = `
   query CustomerOrders($first: Int!) {
     customer {
+      firstName
+      lastName
+      displayName
+      emailAddress { emailAddress }
       orders(first: $first) {
         edges {
           node {
@@ -53,12 +57,33 @@ export const CUSTOMER_ORDERS_QUERY = `
             name
             number
             processedAt
+            financialStatus
             totalPrice {
+              amount
+              currencyCode
+            }
+            subtotalPrice {
+              amount
+              currencyCode
+            }
+            totalShippingPrice {
+              amount
+              currencyCode
+            }
+            totalTax {
               amount
               currencyCode
             }
             statusPageUrl
             fulfillmentStatus
+            shippingAddress {
+              address1
+              address2
+              city
+              zoneCode
+              zip
+              territoryCode
+            }
             fulfillments(first: 10) {
               nodes {
                 latestShipmentStatus
@@ -74,6 +99,13 @@ export const CUSTOMER_ORDERS_QUERY = `
                 id
                 title
                 quantity
+                variantTitle
+                sku
+                productId
+                totalPrice {
+                  amount
+                  currencyCode
+                }
                 image {
                   url
                   altText

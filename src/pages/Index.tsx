@@ -11,8 +11,8 @@ import { Loader2 } from 'lucide-react';
 const Index = () => {
   const { data: products, isLoading } = useProducts();
 
-  const hasTag = (p: any, tag: string) =>
-    (p?.node?.tags || []).some((t: string) => t?.toLowerCase() === tag.toLowerCase());
+  const hasTag = (p: { node: { tags: string[] } }, tag: string) =>
+    (p.node.tags || []).some((t) => (t || "").toLowerCase() === tag.toLowerCase());
 
   const bestSellers =
     products?.filter((p) => hasTag(p, 'Best Sellers')).slice(0, 10) || [];

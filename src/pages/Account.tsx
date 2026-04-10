@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { customerAccountRequest, CUSTOMER_ORDERS_QUERY, getCustomerAccountEndpoint } from "@/lib/customerAccount";
 import { User } from "lucide-react";
 import { Link } from "react-router-dom";
+import { StatusBadge } from "@/components/StatusBadge";
+import { resolveProductHandles } from "@/lib/shopify";
 
 export default function Account() {
   const authed = isAuthenticated();
@@ -26,9 +28,21 @@ export default function Account() {
     name?: string;
     number?: number;
     processedAt?: string;
+    financialStatus?: string;
     totalPrice?: { amount: string; currencyCode: string } | null;
+    subtotalPrice?: { amount: string; currencyCode: string } | null;
+    totalShippingPrice?: { amount: string; currencyCode: string } | null;
+    totalTax?: { amount: string; currencyCode: string } | null;
     statusPageUrl?: string;
     fulfillmentStatus?: string;
+    shippingAddress?: {
+      address1?: string;
+      address2?: string;
+      city?: string;
+      zoneCode?: string;
+      zip?: string;
+      territoryCode?: string;
+    } | null;
     fulfillments?: {
       nodes: Array<{
         latestShipmentStatus?: string;
@@ -41,6 +55,10 @@ export default function Account() {
         id: string;
         title?: string;
         quantity?: number;
+        variantTitle?: string;
+        sku?: string;
+        productId?: string;
+        totalPrice?: { amount: string; currencyCode: string } | null;
         image?: { url?: string; altText?: string };
       }>;
     };
@@ -48,6 +66,8 @@ export default function Account() {
   const [orders, setOrders] = useState<OrderNode[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [handleMap, setHandleMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!authed) {
@@ -111,7 +131,15 @@ export default function Account() {
         }
         
         const edges = success?.data?.customer?.orders?.edges ?? [];
-        setOrders(edges.map((e) => e.node));
+        const nodes = edges.map((e) => e.node);
+        setOrders(nodes);
+        const ids: string[] = [];
+        nodes.forEach((o) => {
+          o.lineItems?.nodes?.forEach((li) => {
+            if (li.productId) ids.push(li.productId);
+          });
+        });
+        resolveProductHandles(ids).then((map) => setHandleMap(map));
       })
       .catch(() => {
         if (!mounted) return;
@@ -155,56 +183,128 @@ export default function Account() {
                 <div className="space-y-2">
                   {orders.map((o) => (
                     <div key={o.id} className="border border-border rounded-md p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-1">
                           <p className="font-medium">{o.name || `Order #${o.number}`}</p>
                           <p className="text-sm text-muted-foreground">{o.processedAt ? new Date(o.processedAt).toLocaleString() : ""}</p>
+                          <div className="mt-1">
+                            <StatusBadge
+                              fulfillmentStatus={o.fulfillmentStatus}
+                              latestShipmentStatus={o.fulfillments?.nodes?.[0]?.latestShipmentStatus}
+                            />
+                          </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium">
+                          <p className="font-semibold">
                             {o.totalPrice?.amount} {o.totalPrice?.currencyCode}
                           </p>
                           {o.statusPageUrl && (
-                            <a href={o.statusPageUrl} className="text-primary text-sm" target="_blank" rel="noopener noreferrer">View status</a>
+                            <a href={o.statusPageUrl} className="text-primary text-sm" target="_blank" rel="noopener noreferrer">Track</a>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm">
+                      {o.lineItems?.nodes && o.lineItems.nodes.length > 0 && (
+                        <div className="mt-2">
+                          <div className="grid gap-3">
+                            {o.lineItems.nodes.slice(0, 2).map((li) => {
+                              const handle = li.productId ? handleMap[li.productId] : undefined;
+                              const link = handle ? `/product/${handle}` : undefined;
+                              return (
+                                <div key={li.id} className="flex items-center gap-3">
+                                  <div className="h-16 w-16 rounded overflow-hidden bg-muted flex items-center justify-center">
+                                    {li.image?.url ? (
+                                      <img src={li.image.url} alt={li.image.altText || li.title || ""} className="h-full w-full object-cover" />
+                                    ) : (
+                                      <div className="text-xs text-muted-foreground">No image</div>
+                                    )}
+                                  </div>
+                                  <div className="flex-1">
+                                    {link ? (
+                                      <Link to={link} className="text-sm font-medium hover:underline">{li.title}</Link>
+                                    ) : (
+                                      <p className="text-sm font-medium">{li.title}</p>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">Qty: {li.quantity}{li.variantTitle ? ` • ${li.variantTitle}` : ""}</p>
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {li.totalPrice?.amount ? `${li.totalPrice.amount} ${li.totalPrice.currencyCode}` : ""}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          {o.lineItems.nodes.length > 2 && (
+                            <button
+                              className="mt-2 text-xs text-primary hover:underline"
+                              onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}
+                            >
+                              {expandedOrder === o.id ? "Hide items" : `+${o.lineItems.nodes.length - 2} more items`}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      {expandedOrder === o.id && o.lineItems?.nodes && (
+                        <div className="mt-3 grid gap-3">
+                          {o.lineItems.nodes.map((li) => {
+                            const handle = li.productId ? handleMap[li.productId] : undefined;
+                            const link = handle ? `/product/${handle}` : undefined;
+                            return (
+                              <div key={li.id} className="flex items-center gap-3">
+                                <div className="h-16 w-16 rounded overflow-hidden bg-muted flex items-center justify-center">
+                                  {li.image?.url ? (
+                                    <img src={li.image.url} alt={li.image.altText || li.title || ""} className="h-full w-full object-cover" />
+                                  ) : (
+                                    <div className="text-xs text-muted-foreground">No image</div>
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  {link ? (
+                                    <Link to={link} className="text-sm font-medium hover:underline">{li.title}</Link>
+                                  ) : (
+                                    <p className="text-sm font-medium">{li.title}</p>
+                                  )}
+                                  <p className="text-xs text-muted-foreground">Qty: {li.quantity}{li.variantTitle ? ` • ${li.variantTitle}` : ""}</p>
+                                </div>
+                                <div className="text-sm">
+                                  {li.totalPrice?.amount ? `${li.totalPrice.amount} ${li.totalPrice.currencyCode}` : ""}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        <div className="text-xs text-muted-foreground">
                           {(() => {
-                            const fulfillmentsNodes = o.fulfillments?.nodes || [];
-                            const latest = fulfillmentsNodes.length > 0 ? fulfillmentsNodes[0].latestShipmentStatus || "" : "";
-                            const delivered = latest === "DELIVERED" || o.fulfillmentStatus === "FULFILLED";
-                            const inTransit = latest === "IN_TRANSIT" || latest === "OUT_FOR_DELIVERY";
-                            const label = delivered ? "Delivered" : inTransit ? "In Transit" : (o.fulfillmentStatus === "FULFILLED") ? "Fulfilled" : "Pending";
-                            return <span className="inline-block rounded px-2 py-1 bg-muted">{label}</span>;
+                            const f = o.fulfillments?.nodes?.[0];
+                            const eta = f?.estimatedDeliveryAt ? new Date(f.estimatedDeliveryAt).toLocaleDateString() : "";
+                            const ti = f?.trackingInformation?.[0];
+                            return (
+                              <>
+                                {eta && <div>ETA: {eta}</div>}
+                                {ti?.url && (
+                                  <a href={ti.url} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+                                    Tracking
+                                  </a>
+                                )}
+                              </>
+                            );
                           })()}
                         </div>
-                        <div className="text-right text-xs text-muted-foreground">
-                          {(() => {
-                            const fulfillmentsNodes = o.fulfillments?.nodes || [];
-                            const eta = fulfillmentsNodes.find(f => !!f.estimatedDeliveryAt)?.estimatedDeliveryAt;
-                            return eta ? `ETA: ${new Date(eta).toLocaleDateString()}` : "";
-                          })()}
+                        <div className="text-sm text-right space-y-0.5">
+                          <div className="text-muted-foreground">Subtotal: {o.subtotalPrice?.amount ? `${o.subtotalPrice.amount} ${o.subtotalPrice.currencyCode}` : "-"}</div>
+                          <div className="text-muted-foreground">Shipping: {o.totalShippingPrice?.amount ? `${o.totalShippingPrice.amount} ${o.totalShippingPrice.currencyCode}` : "-"}</div>
+                          <div className="text-muted-foreground">Tax: {o.totalTax?.amount ? `${o.totalTax.amount} ${o.totalTax.currencyCode}` : "-"}</div>
+                          <div className="font-semibold">Total: {o.totalPrice?.amount} {o.totalPrice?.currencyCode}</div>
                         </div>
                       </div>
-                      {o.lineItems?.nodes && o.lineItems.nodes.length > 0 && (
-                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                          {o.lineItems.nodes.map((li) => (
-                            <div key={li.id} className="flex items-center gap-3">
-                              <div className="h-16 w-16 rounded overflow-hidden bg-muted flex items-center justify-center">
-                                {li.image?.url ? (
-                                  <img src={li.image.url} alt={li.image.altText || li.title || ""} className="h-full w-full object-cover" />
-                                ) : (
-                                  <div className="text-xs text-muted-foreground">No image</div>
-                                )}
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">{li.title}</p>
-                                <p className="text-xs text-muted-foreground">Qty: {li.quantity}</p>
-                              </div>
-                            </div>
-                          ))}
+                      {o.shippingAddress && (
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          {(() => {
+                            const a = o.shippingAddress;
+                            const parts = [a.address1, a.address2, a.city, a.zoneCode, a.zip, a.territoryCode].filter(Boolean);
+                            return parts.join(", ");
+                          })()}
                         </div>
                       )}
                     </div>
