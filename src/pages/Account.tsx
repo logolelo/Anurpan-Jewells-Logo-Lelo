@@ -311,15 +311,9 @@ export default function Account() {
                           {(() => {
                             const f = o.fulfillments?.nodes?.[0];
                             const eta = f?.estimatedDeliveryAt ? new Date(f.estimatedDeliveryAt).toLocaleDateString() : "";
-                            const ti = f?.trackingInformation?.[0];
                             return (
                               <>
                                 {eta && <div>ETA: {eta}</div>}
-                                {ti?.url && (
-                                  <a href={ti.url} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-                                    Tracking
-                                  </a>
-                                )}
                               </>
                             );
                           })()}
