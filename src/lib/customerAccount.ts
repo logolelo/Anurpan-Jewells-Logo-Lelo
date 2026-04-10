@@ -62,11 +62,11 @@ export const CUSTOMER_ORDERS_QUERY = `
               amount
               currencyCode
             }
-            subtotalPrice {
+            subtotal {
               amount
               currencyCode
             }
-            totalShippingPrice {
+            totalShipping {
               amount
               currencyCode
             }

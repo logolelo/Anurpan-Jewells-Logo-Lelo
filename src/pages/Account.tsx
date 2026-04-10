@@ -30,8 +30,8 @@ export default function Account() {
     processedAt?: string;
     financialStatus?: string;
     totalPrice?: { amount: string; currencyCode: string } | null;
-    subtotalPrice?: { amount: string; currencyCode: string } | null;
-    totalShippingPrice?: { amount: string; currencyCode: string } | null;
+    subtotal?: { amount: string; currencyCode: string } | null;
+    totalShipping?: { amount: string; currencyCode: string } | null;
     totalTax?: { amount: string; currencyCode: string } | null;
     statusPageUrl?: string;
     fulfillmentStatus?: string;
@@ -292,8 +292,8 @@ export default function Account() {
                           })()}
                         </div>
                         <div className="text-sm text-right space-y-0.5">
-                          <div className="text-muted-foreground">Subtotal: {o.subtotalPrice?.amount ? `${o.subtotalPrice.amount} ${o.subtotalPrice.currencyCode}` : "-"}</div>
-                          <div className="text-muted-foreground">Shipping: {o.totalShippingPrice?.amount ? `${o.totalShippingPrice.amount} ${o.totalShippingPrice.currencyCode}` : "-"}</div>
+                          <div className="text-muted-foreground">Subtotal: {o.subtotal?.amount ? `${o.subtotal.amount} ${o.subtotal.currencyCode}` : "-"}</div>
+                          <div className="text-muted-foreground">Shipping: {o.totalShipping?.amount ? `${o.totalShipping.amount} ${o.totalShipping.currencyCode}` : "-"}</div>
                           <div className="text-muted-foreground">Tax: {o.totalTax?.amount ? `${o.totalTax.amount} ${o.totalTax.currencyCode}` : "-"}</div>
                           <div className="font-semibold">Total: {o.totalPrice?.amount} {o.totalPrice?.currencyCode}</div>
                         </div>
